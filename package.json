@@ -24,6 +24,8 @@
         "express-status-monitor": "trantoan960/express-status-monitor",
         "figlet": "^1.5.2",
         "helmet": "^4.6.0",
+        "heroku": "^7.59.2",
+        "heroku-cli": "^7.0.9",
         "html-to-text": "^8.1.0",
         "http-status": "^1.5.0",
         "husky": "^7.0.2",
@@ -63,5 +65,8 @@
             "pre-commit": "prettier --write . && git add -A .",
             "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
         }
-    }
+    },
+    "engines": {
+        "node": ">=10.0.0"
+      }
 }
