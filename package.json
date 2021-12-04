@@ -6,7 +6,7 @@
     "author": "Sky Albert <trantoan.fox.97@gmail.com>",
     "license": "MIT",
     "scripts": {
-        "start": "nodemon src/app.js",
+        "start": "node src/app.js",
         "dev": "cross-env NODE_ENV=development nodemon src/app.js",
         "start:prod": "cross-env NODE_ENV=production nodemon src/app.js"
     },
@@ -45,8 +45,7 @@
         "swagger-ui-express": "^4.1.6",
         "validator": "^13.6.0",
         "winston": "^3.3.3",
-        "xss-clean": "^0.1.1",
-        "nodemon": "^2.0.15"
+        "xss-clean": "^0.1.1"
     },
     "devDependencies": {
         "@commitlint/cli": "^13.1.0",
