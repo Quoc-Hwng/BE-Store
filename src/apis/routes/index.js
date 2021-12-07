@@ -35,6 +35,10 @@ const defaultRoutes = [
         route: projectRoute,
     },
     {
+        path: '/products',
+        route: projectRoute,
+    },
+    {
         path: '/v1/cart',
         route: cartRoute,
     },
