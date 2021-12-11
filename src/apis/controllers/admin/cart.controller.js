@@ -2,13 +2,14 @@ const httpStatus = require('http-status')
 const catchAsync = require('../../../utils/catch-async')
 const { cartService } = require('../../services')
 const { Cart } = require('../../models')
-const Email = require('../../../utils/email')
+const Email = require('../../../utils/email');
+const APIFeatures = require('../../../utils/api-feature')
 
 const addCart = catchAsync(async (req, res, next) => {
     try {
         const cart = await cartService.createCart(req.body)
 
-        const url = `Gio hang cua ban!`;
+        const url = `http://localhost:4200/tracking`;
         await new Email(cart, url).sendCartInfo();  //cart: id, user(id), phone, address, total, displayName, email, products[]
 
         res.status(httpStatus.CREATED).json({
@@ -37,17 +38,33 @@ const viewCart = catchAsync(async (req, res, next) => {
 
 const viewAllCart = catchAsync(async (req, res, next) => {
     try {
-        const product = await cartService.viewAllCart();
+        const lengthOrigin = (await Cart.find()).length;
 
-        if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: 'No cart existed'
-            });
-        }
-        res.json({
-            success: true,
-            carts: product,
+        //executing query
+        const features = new APIFeatures(
+            Cart.find(),
+            req.query,
+            lengthOrigin
+        ).sort();
+        // const docs = await features.mongooseQuery.explain();
+        const docs = await features.mongooseQuery;
+        // const product = await cartService.viewAllCart();
+
+        // if (!product) {
+        //     return res.status(404).json({
+        //         success: false,
+        //         message: 'No cart existed'
+        //     });
+        // }
+
+        // res.json({
+        //     success: true,
+        //     carts: product,
+        // });
+        res.status(200).json({
+            status: 'success',
+            results: docs.length,
+            carts: docs,
         });
     } catch (err) {
         console.log(err);

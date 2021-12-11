@@ -13,6 +13,13 @@ const signToken = (id) => {
     });
 };
 
+const filterObj = (obj, ...allowedFields) => {
+    const newObj = {};
+    Object.keys(obj).forEach((el) => {
+        if (allowedFields.includes(el)) newObj[el] = obj[el];
+    });
+    return newObj;
+}
 //create send token
 const createSendToken = (user, statusCode, res) => {
     const token = signToken(user._id);
@@ -87,49 +94,53 @@ exports.viewProfile = catchAsync(async (req, res) => {
     }
 })
 exports.protect = catchAsync(async (req, res, next) => {
-    let token;
-    //1) getting token and check of it's there
-    if (
-        req.headers.authorization &&
-        req.headers.authorization.startsWith('Bearer')
-    ) {
-        token = req.headers.authorization.split(' ')[1];
-    }
+    try {
+        let token;
+        //1) getting token and check of it's there
+        if (
+            req.headers.authorization &&
+            req.headers.authorization.startsWith('Bearer')
+        ) {
+            token = req.headers.authorization.split(' ')[1];
+        }
 
-    if (!token) {
-        return next(
-            new AppError("You're not log in! Please log in to get access", 401)
+        if (!token) {
+            return next(
+                new AppError("You're not log in! Please log in to get access", 401)
+            );
+        }
+
+        //2) verification token
+        const jwtDecoded = await promisify(jwt.verify)(
+            token,
+            process.env.PASSPORT_JWT
         );
+
+        //3) check if user exists
+        const currentUser = await User.findById(jwtDecoded.id);
+        if (!currentUser) {
+            return next(
+                new AppError(
+                    'The user does no longer exists. Please log in again',
+                    401
+                )
+            );
+        }
+
+        //4) check if user has changed password after token was issued
+        // if (currentUser.changedPasswordAfter(jwtDecoded.iat)) {
+        //     return next(
+        //         new AppError('Password has recently changed! Please try agian', 401)
+        //     );
+        // }
+
+        //grant access to protected routes
+        req.user = currentUser;
+        //console.log(currentUser);
+        next();
+    } catch (err) {
+        console.log(err);
     }
-
-    //2) verification token
-    const jwtDecoded = await promisify(jwt.verify)(
-        token,
-        process.env.PASSPORT_JWT
-    );
-
-    //3) check if user exists
-    const currentUser = await User.findById(jwtDecoded.id);
-    if (!currentUser) {
-        return next(
-            new AppError(
-                'The user does no longer exists. Please log in again',
-                401
-            )
-        );
-    }
-
-    //4) check if user has changed password after token was issued
-    // if (currentUser.changedPasswordAfter(jwtDecoded.iat)) {
-    //     return next(
-    //         new AppError('Password has recently changed! Please try agian', 401)
-    //     );
-    // }
-
-    //grant access to protected routes
-    req.user = currentUser;
-    //console.log(currentUser);
-    next();
 });
 
 exports.restrictTo = (...roles) => {
@@ -234,22 +245,26 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 exports.updateMe = catchAsync(async (req, res, next) => {
 
     // 1) Filtered out unwanted fields names that are not allowed to be updated
-    const filteredBody = filterObj(req.body, 'displayName', 'phone', 'address');
+    try {
+        const filteredBody = filterObj(req.body, 'displayName', 'phone', 'address');
 
-    // 2) Update user document
-    const updatedUser = await User.findByIdAndUpdate(
-        req.user.id,
-        filteredBody,
-        {
-            new: true,
-            runValidators: true,
-        }
-    );
+        // 2) Update user document
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user.id,
+            filteredBody,
+            {
+                new: true,
+                runValidators: true,
+            }
+        );
 
-    res.status(200).json({
-        status: 'success',
-        data: {
-            user: updatedUser,
-        },
-    });
+        res.status(200).json({
+            status: 'success',
+            data: {
+                user: updatedUser,
+            },
+        });
+    } catch (err) {
+        console.error(err);
+    }
 });

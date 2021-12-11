@@ -40,12 +40,12 @@ const userSchema = mongoose.Schema(
             type: Boolean,
             default: false,
         },
-           role: {
+        role: {
             type: String,
             enum: ['admin', 'customer'],
             default: 'customer'
         },
-         phone: {
+        phone: {
             type: Number,
             min: [9, 'Password must be valid']
         },
@@ -54,7 +54,7 @@ const userSchema = mongoose.Schema(
             trim: true
         },
         passwordResetToken: String,
-		passwordResetExpires: Date,
+        passwordResetExpires: Date,
     },
     {
         timestamps: true,
@@ -63,7 +63,7 @@ const userSchema = mongoose.Schema(
 
 userSchema.plugin(toJSON)
 userSchema.plugin(paginate)
-userSchema.index({'$**': 'text'});
+userSchema.index({ '$**': 'text' });
 
 /**
  * Check if email is taken
@@ -87,24 +87,24 @@ userSchema.methods.isPasswordMatch = async function (password) {
 }
 
 userSchema.methods.correctPassword = async function (
-	candidatePassword,
-	userPassword
+    candidatePassword,
+    userPassword
 ) {
-	return await bcrypt.compare(candidatePassword, userPassword);
+    return await bcrypt.compare(candidatePassword, userPassword);
 };
 
 //method to create reset password token
 userSchema.methods.createResetPasswordToken = function () {
-	const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetToken = crypto.randomBytes(32).toString('hex');
 
-	this.passwordResetToken = crypto
-		.createHash('sha256')
-		.update(resetToken)
-		.digest('hex');
+    this.passwordResetToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
 
-	this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+    this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
-	return resetToken;
+    return resetToken;
 };
 
 userSchema.pre('save', async function (next) {

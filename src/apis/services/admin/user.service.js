@@ -15,29 +15,29 @@ const createUser = async (userBody) => {
     return User.create(userBody)
 }
 
-const listuser = async (page,size) => {
+const listuser = async (page, size) => {
 
-    if(page){
+    if (page) {
         pages = parseInt(page);
-        if(pages<1)
+        if (pages < 1)
             pages = 1;
 
         sizes = parseInt(size);
-        if(sizes<5)
+        if (sizes < 5)
             sizes = 5;
-        var skips = (pages-1)*sizes;
-        const listuser = await User.find({role:'customer'}).skip(skips).limit(sizes)
+        var skips = (pages - 1) * sizes;
+        const listuser = await User.find({}).skip(skips).limit(sizes)
         return listuser
-    }else{
+    } else {
         sizes = parseInt(size);
-        if(sizes<5)
+        if (sizes < 5)
             sizes = 5;
-        const listuser = await User.find({role:'customer'}).limit(sizes)
+        const listuser = await User.find({}).limit(sizes)
         return listuser
     }
 }
 const searchUser = async (key) => {
-    const listUser = await User.find({$text: {$search: key } });
+    const listUser = await User.find({ $text: { $search: key } });
     return listUser
 }
 

@@ -17,23 +17,23 @@ const listProduct = catchAsync(async (req, res, next) => {
     const lengthOrigin = (await Product.find()).length;
 
     //executing query
-		const features = new APIFeatures(
-			Product.find(),
-			req.query,
-			lengthOrigin
-		).filter()
-			.paginate();
-		// const docs = await features.mongooseQuery.explain();
-		const docs = await features.mongooseQuery;
+    const features = new APIFeatures(
+        Product.find(),
+        req.query,
+        lengthOrigin
+    ).filter()
+        .paginate().sort();
+    // const docs = await features.mongooseQuery.explain();
+    const docs = await features.mongooseQuery;
 
-		//Send response
-		res.status(200).json({
-			status: 'success',
-			results: docs.length,
-			data: {
-				data: docs,
-			},
-		});
+    //Send response
+    res.status(200).json({
+        status: 'success',
+        results: docs.length,
+        data: {
+            data: docs,
+        },
+    });
 
     // const productList = await Product.find()
     //     if(productList.length==0){
@@ -57,40 +57,40 @@ const viewProduct = catchAsync(async (req, res, next) => {
     console.log('productsSize: ', productsSize)
     // let sizes = [];
     // productsSize.forEach(p => sizes.push(p.size));
-        if(!product){
-            return res.status(500).json({
-                success: false,
-                message: 'No product existed'
-            });
-        }
-        res.json({
-            success: true,
-            product: product,
-            productsSize: productsSize,
+    if (!product) {
+        return res.status(500).json({
+            success: false,
+            message: 'No product existed'
         });
+    }
+    res.json({
+        success: true,
+        product: product,
+        productsSize: productsSize,
+    });
 })
 const exitProduct = catchAsync(async (req, res, next) => {
     const id = req.params.id
-    const product = await  productService.updateProduct(id,req.body)
+    const product = await productService.updateProduct(id, req.body)
     res.status(httpStatus.OK).json({
         success: true,
         product: product
     });
 })
 const deleteProduct = catchAsync(async (req, res, next) => {
-    Product.findByIdAndRemove(req.params.id).then(product=>{
-        if(product){
+    Product.findByIdAndRemove(req.params.id).then(product => {
+        if (product) {
             return res.status(200).json({
                 success: true,
                 message: 'The product is deleted!'
             });
-        }else{
+        } else {
             return res.status(404).json({
                 success: false,
                 message: 'product not Found'
             });
         }
-    }).catch(error=>{
+    }).catch(error => {
         return res.status(500).json({
             success: false,
             error: error
@@ -101,25 +101,25 @@ const deleteProduct = catchAsync(async (req, res, next) => {
 const filterProduct = catchAsync(async (req, res, next) => {
     console.log(req.body);
     productService.filterProduct(req.body.category, req.body.brand, req.body.priceMin, req.body.priceMax).then(products => {
-        if(products){
+        if (products) {
             return res.status(200).json({
                 success: true,
                 message: 'The product is filtered',
                 product: products
             });
-        }else{
+        } else {
             return res.status(404).json({
                 success: false,
                 message: 'product not Found'
             });
         }
-    }).catch(error=>{
+    }).catch(error => {
         return res.status(500).json({
             success: false,
             error: error
         });
-   
-})
+
+    })
 })
 
 const searchProduct = catchAsync(async (req, res, next) => {
