@@ -98,9 +98,9 @@ const addCartPayPal = catchAsync(async (req, res, next) => {
             redirect_urls: {
                 // return_url: `${req.protocol}://${req.get('host')}/api/v1/pay/success`,
                 // cancel_url: `${req.protocol}://${req.get('host')}/api/v1/pay/cancel`,
-                return_url: "http://localhost:3000/api/v1/cart/success",
+                return_url: "https://desolate-dusk-27866.herokuapp.com/api/v1/cart/success",
                 //return_url: "http://localhost:4200/successPayPal",
-                cancel_url: "http://localhost:3000/api/v1/cart/cancel",
+                cancel_url: "https://desolate-dusk-27866.herokuapp.com/api/v1/cart/cancel",
             },
             transactions: [
                 {
