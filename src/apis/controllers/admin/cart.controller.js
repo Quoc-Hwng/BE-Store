@@ -21,6 +21,175 @@ const addCart = catchAsync(async (req, res, next) => {
     }
 })
 
+let convertedTotalPrice;
+let cart = {};
+// let cart = {
+//     "state": "unconfirmed",
+//     "total": 5000000,
+//     "displayName": "Sơ ri mộng tuyền",
+//     "email": "trungdang29122000@gmail.com",
+//     "phone": "0365236974",
+//     "address": "So 1 VVN",
+//     "createdAt": "2021-12-03T14:27:48.486+00:00",
+//     "updatedAt": "2021-12-03T14:27:48.486+00:00",
+//     "__v": 0,
+//     "products": [
+//         {
+//             "product": "61a7703aa80b0db542e3afd2",
+//             "quantity": 2
+//         },
+//         {
+//             "product": "61a770daa80b0db542e3afeb",
+//             "quantity": 1
+//         }
+//     ]
+// };
+paypal.configure({
+    mode: 'sandbox',
+    client_id:
+        'AUwNSEfoyT3YmqhkANrcL9D_nJSh1I5ffjgTuG2mXBKdXOmSZcEFipOOJ9kBiC2Kwr7eU_TkiAyyzvYm',
+    client_secret:
+        'EE1fT0tZdKbdeszbMkCktS1IzsyuzDnM_nKdANNVlfJSRkiUid0c0A6WynGf_opw070XuJQLc3MbiZyO',
+});
+const addCartPayPal = catchAsync(async (req, res, next) => {
+    try {
+        cart = {};                                                      //đóng tạm thời
+        cart = req.body;                                                //đóng tạm thời
+        console.log('cart', cart);
+
+        // Chuyển VND sang USD
+        const exchangeUrl =
+            'https://openexchangerates.org/api/latest.json?app_id=1660c56ea4cc47039bcd5513b6c43f1a';
+        const asyncGetRates = async () => {
+            const data = await axios.get(exchangeUrl);
+            console.log(data.data.rates.VND);
+            return data.data.rates.VND;
+        };
+        const exchangeRate = await asyncGetRates();
+        console.log('check exchangeRate: ', exchangeRate);
+
+        let items = [];
+        for await (const prod of cart.products) {
+            let product = await Product.findById(prod.product);
+            items.push({
+                name: product.productName,
+                sku: product.id,
+                price: Math.round(product.priceSale / exchangeRate),
+                currency: 'USD',
+                quantity: prod.quantity
+            })
+        }
+
+        //items = [...productsInCart];
+        console.log('items: ', items);
+
+        convertedTotalPrice = 0;
+        for (i = 0; i < items.length; i++) {
+            convertedTotalPrice += parseFloat(items[i].price) * items[i].quantity;
+        }
+        console.log('convertedTotalPrice: ', convertedTotalPrice);
+
+        // 4) tạo biến mẫu paypal để giao dịch có items, total là convertedItems, convertedTotalPrice đã tính ở trên
+        var create_payment_json = {
+            intent: 'sale',
+            payer: {
+                payment_method: 'paypal',
+            },
+            redirect_urls: {
+                // return_url: `${req.protocol}://${req.get('host')}/api/v1/pay/success`,
+                // cancel_url: `${req.protocol}://${req.get('host')}/api/v1/pay/cancel`,
+                return_url: "http://localhost:3000/api/v1/cart/success",
+                //return_url: "http://localhost:4200/successPayPal",
+                cancel_url: "http://localhost:3000/api/v1/cart/cancel",
+            },
+            transactions: [
+                {
+                    item_list: {
+                        items
+                    },
+                    amount: {
+                        currency: "USD",
+                        total: convertedTotalPrice,
+                    },
+                    description: 'Thanh toan don hang bang Papal o shop ban giay',
+                },
+            ],
+        };
+
+        // 5) chuyển đến trang giao dịch;
+        paypal.payment.create(create_payment_json, (error, payment) => {
+            console.log('check payment: ', payment);
+            if (error) {
+                console.log(error.response.details);
+                //return next(new AppError('Something went wrong while paying', 400));
+                return
+                // res.render('cancel');
+            } else {
+                for (let i = 0; i < payment.links.length; i++) {
+                    if (payment.links[i].rel === 'approval_url') {
+                        // res.redirect(payment.links[i].href);    //
+
+                        res.json({
+                            forwardLink: payment.links[i].href,      //bỏ cmt
+                        });
+                    }
+                }
+                console.log('show payment: ', payment);
+            }
+        });
+
+    } catch (err) {
+        //console.log(err);
+    }
+})
+
+const getSuccess = catchAsync(async (req, res) => {
+    try {
+        console.log('convertedTotalPrice (success): ', convertedTotalPrice);
+
+        // 1) lấy thông tin thanh toán
+        const payerId = req.query.PayerID;
+        const paymentId = req.query.paymentId;
+
+        const execute_payment_json = {
+            payer_id: payerId,
+            transactions: [
+                {
+                    amount: {
+                        currency: 'USD',
+                        total: convertedTotalPrice,
+                    },
+                },
+            ],
+        };
+
+        // 2) thanh toán !
+        paypal.payment.execute(
+            paymentId,
+            execute_payment_json,
+            async function (error, payment) {
+                if (error) {
+                    res.render('cancel');
+                } else {
+                    console.log('Get payment response: ');
+                    console.log(JSON.stringify(payment));
+
+                    await cartUserService.createCart(cart, { method: 'paypal' })
+
+                    res.render('success');
+                }
+            }
+        );
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+const getCancel = catchAsync(async (req, res) => {
+    res.send('Cancelled payment');
+})
+
+
 const viewCart = catchAsync(async (req, res, next) => {
     const product = await Cart.findById(req.params.id);
 
@@ -91,6 +260,9 @@ const deleteCart = catchAsync(async (req, res) => {
 
 module.exports = {
     addCart,
+    addCartPayPal,
+    getSuccess,
+    getCancel,
     viewCart,
     viewAllCart,
     updateCart,

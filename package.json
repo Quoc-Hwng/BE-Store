@@ -39,6 +39,7 @@
         "nodemailer-smtp-transport": "^2.7.4",
         "passport": "^0.4.1",
         "passport-jwt": "^4.0.0",
+        "paypal-rest-sdk": "^1.8.1",
         "pug": "^3.0.2",
         "serve-favicon": "^2.5.0",
         "swagger-jsdoc": "^6.1.0",

@@ -10,7 +10,9 @@ router.get('/', cartController.viewAllCart)
 router.get('/:id', cartController.viewCart)
 router.put('/edit/:id', cartController.updateCart)
 router.delete('/:id', cartController.deleteCart)
-
+router.post('/addPayPal', cartControllerUser.addCartPayPal)
+router.get('/success', cartControllerUser.getSuccess);
+router.get('/cancel', cartControllerUser.getCancel);
 
 
 module.exports = router
