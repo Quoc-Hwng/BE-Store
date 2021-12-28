@@ -171,7 +171,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     // 3) send it to user's email
     try {
         //const resetURL = `${req.protocol}://${req.get('host')}/api/v1/auth/user/resetPassword/${resetToken}`;
-        const resetURL = `${req.protocol}://localhost:4200/resetPassword/${resetToken}`;
+        const resetURL = `https://cnpmm-nhom11.herokuapp.com/resetpassword/${resetToken}`;
         await new Email(user, resetURL).sendPasswordReset();
 
         res.status(200).json({
