@@ -25,27 +25,6 @@ const addCart = catchAsync(async (req, res, next) => {
 
 let convertedTotalPrice;
 let cart = {};
-// let cart = {
-//     "state": "unconfirmed",
-//     "total": 5000000,
-//     "displayName": "Sơ ri mộng tuyền",
-//     "email": "trungdang29122000@gmail.com",
-//     "phone": "0365236974",
-//     "address": "So 1 VVN",
-//     "createdAt": "2021-12-03T14:27:48.486+00:00",
-//     "updatedAt": "2021-12-03T14:27:48.486+00:00",
-//     "__v": 0,
-//     "products": [
-//         {
-//             "product": "61a7703aa80b0db542e3afd2",
-//             "quantity": 2
-//         },
-//         {
-//             "product": "61a770daa80b0db542e3afeb",
-//             "quantity": 1
-//         }
-//     ]
-// };
 paypal.configure({
     mode: 'sandbox',
     client_id:
@@ -98,11 +77,10 @@ const addCartPayPal = catchAsync(async (req, res, next) => {
                 payment_method: 'paypal',
             },
             redirect_urls: {
-                // return_url: `${req.protocol}://${req.get('host')}/api/v1/pay/success`,
-                // cancel_url: `${req.protocol}://${req.get('host')}/api/v1/pay/cancel`,
-                return_url: "https://desolate-dusk-27866.herokuapp.com/api/v1/cart/success",
-                //return_url: "http://localhost:4200/successPayPal",
-                cancel_url: "https://desolate-dusk-27866.herokuapp.com/api/v1/cart/cancel",
+                return_url: `${req.protocol}://${req.get('host')}/api/v1/pay/success`,
+                cancel_url: `${req.protocol}://${req.get('host')}/api/v1/pay/cancel`,
+                // return_url: "https://desolate-dusk-27866.herokuapp.com/api/v1/cart/success",
+                // cancel_url: "https://desolate-dusk-27866.herokuapp.com/api/v1/cart/cancel",
             },
             transactions: [
                 {

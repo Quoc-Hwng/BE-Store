@@ -48,6 +48,9 @@ const cartSchema = mongoose.Schema(
         timeOrder: {
             type: Date,
             default: Date.now()
+        },
+        stateOrder: {
+            type: String
         }
     },
     {
