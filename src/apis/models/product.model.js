@@ -37,10 +37,10 @@ const productSchema = mongoose.Schema(
             trim: true
         },
         productImg1:
-            {
-                type: Array,
-                trim: true
-            }
+        {
+            type: Array,
+            trim: true
+        }
         ,
         productImg2: {
             type: String,
@@ -79,7 +79,18 @@ const productSchema = mongoose.Schema(
             type: Number,
             required: true,
             trim: true
-        }
+        },
+        ratingsAverage: {
+            type: Number,
+            default: 4.5,
+            min: [1, 'Rating must be above 1'],
+            max: [5, 'Rating must be below 5'],
+            set: (val) => Math.round(val * 10) / 10,
+        },
+        ratingsQuantity: {
+            type: Number,
+            default: 0,
+        },
     },
     {
         timestamps: true,
@@ -88,7 +99,7 @@ const productSchema = mongoose.Schema(
 
 productSchema.plugin(toJSON)
 productSchema.plugin(paginate)
-productSchema.index({'$**': 'text'});
+productSchema.index({ '$**': 'text' });
 
 /**
  * Check if product is taken
@@ -96,7 +107,7 @@ productSchema.index({'$**': 'text'});
  * @param {ObjectId} [excludeProductId] - The id of the user to be excluded
  * @returns {Promise<boolean>}
  */
- productSchema.statics.isCodeTaken = async function (productCode, excludeProductId) {
+productSchema.statics.isCodeTaken = async function (productCode, excludeProductId) {
     const product = await this.findOne({ productCode, _id: { $ne: excludeProductId } })
     return !!product
 }
